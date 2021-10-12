@@ -7,11 +7,11 @@
 - Set userparams file mode (```sudo chmod 0440 zfs-userparams.conf```)
 - Restart Zabbix Agent (```sudo systemctl restart zabbix-agent.service```)
 - Import corresponding template file (```zfs-userparams-template.yaml```) on Zabbix Server
-- Link 'Template zfs-userparams by Zabbix agent active' template to selected hosts
+- Link ```Template zfs-userparams by Zabbix agent active``` template to selected hosts
 
 ## System requirements
 
-- zfsutils-linux package installed
+- ```zfsutils-linux``` package installed
 
 ## Tested on
 
