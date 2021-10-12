@@ -18,7 +18,7 @@
 - Zabbix Agent 5.x on Ubuntu 20.04
 - Zabbix Server 5.x
 
-## Items
+## Keys
 
 - zfs-userparams.pool.degraded
 
@@ -74,7 +74,7 @@
 
   Expected return value: a number indicating the number of available pools.
 
-## Triggers
+## Template triggers
 
 - ZFS - no data pools available
 
