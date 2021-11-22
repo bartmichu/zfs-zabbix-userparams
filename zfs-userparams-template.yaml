@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-10-12T15:48:06Z'
+  date: '2021-11-22T19:25:03Z'
   groups:
     -
       uuid: 1f248a6e45934744a86f6abf1c8d44d4
@@ -167,3 +167,11 @@ zabbix_export:
                 
                 In some cases, pools with UNAVAIL devices appear in DEGRADED mode. If a top-level virtual device is UNAVAIL, then nothing in the pool can be accessed.
               manual_close: 'YES'
+        -
+          uuid: 1148b70193634c04a4d606fdeb92ca18
+          name: 'ZFS Template - userparams file version'
+          type: ZABBIX_ACTIVE
+          key: zfs-userparams.userparams-version
+          delay: 30m
+          history: 14d
+          trends: 30d

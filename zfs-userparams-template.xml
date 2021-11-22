@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.4</version>
-    <date>2021-10-12T18:16:45Z</date>
+    <date>2021-11-22T19:25:05Z</date>
     <groups>
         <group>
             <uuid>1f248a6e45934744a86f6abf1c8d44d4</uuid>
@@ -191,6 +191,15 @@ In some cases, pools with UNAVAIL devices appear in DEGRADED mode. If a top-leve
                             <manual_close>YES</manual_close>
                         </trigger>
                     </triggers>
+                </item>
+                <item>
+                    <uuid>1148b70193634c04a4d606fdeb92ca18</uuid>
+                    <name>ZFS Template - userparams file version</name>
+                    <type>ZABBIX_ACTIVE</type>
+                    <key>zfs-userparams.userparams-version</key>
+                    <delay>30m</delay>
+                    <history>14d</history>
+                    <trends>30d</trends>
                 </item>
             </items>
         </template>
