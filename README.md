@@ -2,110 +2,127 @@
 
 ## Usage
 
-- Copy userparams file (```zfs-userparams.conf```) to a directory included in your Zabbix Agent configuration file, e.g. ```/etc/zabbix/zabbix_agentd.d/```
-- Set userparams file owner and group (```sudo chown root:zabbix zfs-userparams.conf```)
-- Set userparams file mode (```sudo chmod 0440 zfs-userparams.conf```)
-- Restart Zabbix Agent (```sudo systemctl restart zabbix-agent.service```)
-- Import corresponding template file (```zfs-userparams-template.yaml```) on Zabbix Server
-- Link ```Template zfs-userparams by Zabbix agent active``` template to selected hosts
+- Copy the userparams file (`zfs-userparams.conf`) to a directory included in your Zabbix Agent configuration file, such as `/etc/zabbix/zabbix_agentd.d/` or `/etc/zabbix/zabbix_agent2.d/`.
+- Set the owner and group of the userparams file (`chown root:zabbix zfs-userparams.conf`).
+- Set the mode of the userparams file (`chmod 0440 zfs-userparams.conf`).
+- Restart the Zabbix Agent (`systemctl restart zabbix-agent.service or systemctl restart zabbix-agent2.service`).
+- Import the corresponding template file (`zfs-userparams-template.yaml`) on the Zabbix Server.
+- Link the 'Basic ZFS by Zabbix agent active' template to the selected hosts.
+- You may need to increase the Timeout value in your Zabbix Agent configuration file, for example, `Timeout=30`.
 
 ## System requirements
 
-- ```zfsutils-linux``` package installed
+- The `zfsutils-linux` package needs to be installed.
 
 ## Tested on
 
-- Zabbix Agent 5.x on Ubuntu 20.04
-- Zabbix Server 5.x
+- Zabbix Agent 2 on Ubuntu 20.04 and Ubuntu 22.04
+- Zabbix Server 6.0 LTS
 
-## Keys
+## Template items
 
-- zfs-userparams.pool.degraded
+- `zfs-userparams.userparams-version`
 
-  Check for DEGRADED pools.
+  Return the version number of this file. This field is reserved for future use and intended for versioning within the template.
 
-  Expected return value: a number indicating the number of matching pools.
+- `zfs-userparams.pool.degraded`
 
-- zfs-userparams.pool.faulted
+  Check for degraded pools.
 
-  Check for FAULTED pools.
+  Expected return value: an integer indicating the number of matching pools.
 
-  Expected return value: a number indicating the number of matching pools.
+- `zfs-userparams.pool.faulted`
 
-- zfs-userparams.pool.offline
+  Check for faulted pools.
 
-  Check for OFFLINE pools.
+  Expected return value: an integer indicating the number of matching pools.
 
-  Expected return value: a number indicating the number of matching pools.
+- `zfs-userparams.pool.offline`
 
-- zfs-userparams.pool.unavail
+  Check for offline pools.
 
-  Check for UNAVAIL pools.
+  Expected return value: an integer indicating the number of matching pools.
 
-  Expected return value: a number indicating the number of matching pools.
+- `zfs-userparams.pool.unavail`
 
-- zfs-userparams.pool.removed
+  Check for unavailable pools.
 
-  Check for REMOVED pools.
+  Expected return value: an integer indicating the number of matching pools.
 
-  Expected return value: a number indicating the number of matching pools.
+- `zfs-userparams.pool.removed`
 
-- zfs-userparams.pool.capacity-80
+  Check for removed pools.
+
+  Expected return value: an integer indicating the number of matching pools.
+
+- `zfs-userparams.pool.capacity-80`
 
   Check for pools with more than 80% disk space used (capacity).
 
-  Expected return value: a number indicating the number of matching pools.
+  Expected return value: an integer indicating the number of matching pools.
 
-- zfs-userparams.pool.capacity-90
+- `zfs-userparams.pool.capacity-90`
 
-  Check for pools with more than 90% disk space used (capacity).
+  Check for pools with more than 80% disk space used (capacity).
 
-  Expected return value: a number indicating the number of matching pools.
+  Expected return value: an integer indicating the number of matching pools.
 
-- zfs-userparams.pool.fragmentation
+- `zfs-userparams.pool.fragmentation`
 
   Check for pools with more than 70% free disk space fragmentation.
 
-  Expected return value: a number indicating the number of matching pools.
+  Expected return value: an integer indicating the number of matching pools.
 
-- zfs-userparams.pool.number
+- `zfs-userparams.pool.number`
 
   Check the number of available ZFS storage pools.
 
-  Expected return value: a number indicating the number of available pools.
+  Expected return value: an integer indicating the number of available pools.
 
 ## Template triggers
 
-- ZFS - no data pools available
+- ZFS: No data pools available
 
-- ZFS pool - DEGRADED
+- ZFS: Degraded pool
 
-  The virtual device has experienced a failure but can still function. This state is most common when a mirror or RAID-Z device has lost one or more constituent devices. The fault tolerance of the pool might be compromised, as a subsequent fault in another device might be unrecoverable.
+  The virtual device has encountered a failure but is still operational.
 
-- ZFS pool - FAULTED
+  This situation is most frequently observed when a mirror or RAID-Z device has lost one or more constituent devices. The fault tolerance of the pool may be compromised, as a subsequent fault in another device could be irreparable.
 
-  The device or virtual device is completely inaccessible. This status typically indicates total failure of the device, such that ZFS is incapable of sending data to it or receiving data from it. If a top-level virtual device is in this state, then the pool is completely inaccessible.
+- ZFS: Faulted pool
 
-- ZFS pool - more than 70% free disk space fragmentation
+  The device or virtual device is completely inaccessible.
 
-  High free space fragmentation can cause a significant performance degradation.
+  This status typically signifies a complete failure of the device, rendering it incapable of sending or receiving data to/from ZFS. If a top-level virtual device is in this state, the entire pool becomes completely inaccessible.
 
-- ZFS pool - more than 80% disk space used
+- ZFS: More than 70% free disk space fragmentation
 
-  Some ZFS pools are reporting more than 80% disk space used. Pool performance tends to degrade significantly above this threshold.
+  High fragmentation of free space can lead to significant performance degradation.
 
-- ZFS pool - more than 90% disk space used
+- ZFS: More than 80% disk space used
 
-  Some ZFS pools are reporting more than 90% disk space used. Pool performance will degrade significantly above this threshold.
+  Some ZFS pools are reporting more than 80% disk space used.
 
-- ZFS pool - OFFLINE
+  Pool performance tends to degrade significantly beyond this threshold.
+
+- ZFS: More than 90% disk space used
+
+  Some ZFS pools are reporting more than 90% disk space used.
+
+  Pool performance will degrade significantly beyond this threshold.
+
+- ZFS: Offline pool
 
   The device has been explicitly taken offline by the administrator.
 
-- ZFS pool - REMOVED
+- ZFS: Removed pool
 
-  The device was physically removed while the system was running. Device removal detection is hardware-dependent and might not be supported on all platforms.
+  The device was physically removed while the system was running.
 
-- ZFS pool - UNAVAIL
+  Device removal detection is dependent on the hardware and may not be supported on all platforms.
 
-  The device or virtual device cannot be opened. In some cases, pools with UNAVAIL devices appear in DEGRADED mode. If a top-level virtual device is UNAVAIL, then nothing in the pool can be accessed.
+- ZFS: Unavailable pool
+
+  The device or virtual device cannot be opened.
+
+  In certain cases, pools with UNAVAIL devices may appear in DEGRADED mode. If a top-level virtual device is UNAVAIL, then all data in the pool becomes inaccessible.
