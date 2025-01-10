@@ -1,174 +1,162 @@
 zabbix_export:
   version: '6.0'
-  date: '2023-05-24T19:03:22Z'
+  date: '2025-01-10T13:57:40Z'
   groups:
-    -
-      uuid: 1f248a6e45934744a86f6abf1c8d44d4
+    - uuid: 1f248a6e45934744a86f6abf1c8d44d4
       name: Templates/ZFS
   templates:
-    -
-      uuid: 889f3c8eaaf44e198255fd5dac497fe4
+    - uuid: 889f3c8eaaf44e198255fd5dac497fe4
       template: 'Basic ZFS by Zabbix agent active'
       name: 'Basic ZFS by Zabbix agent active'
       description: |
-        Basic monitoring of ZFS data pools.
+        Basic monitoring of ZFS storage pools.
         
-        The corresponding user parameters file and documentation can be found at https://github.com/bartmichu/zfs-zabbix-userparams
+        The corresponding user parameters file and documentation can be found at:
+        https://github.com/bartmichu/zfs-zabbix-userparams
       groups:
-        -
-          name: Templates/ZFS
+        - name: Templates/ZFS
       items:
-        -
-          uuid: b28d27c1ef464db0b45a20cffa683db8
+        - uuid: b28d27c1ef464db0b45a20cffa683db8
           name: 'ZFS: Pool capacity - 80'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.capacity-80
           history: 14d
           trends: 30d
+          description: 'An integer indicating the number of pools exceeding 80% usage.'
           triggers:
-            -
-              uuid: 34fdbbf03edc43b7a51d5f4a02edd121
+            - uuid: 34fdbbf03edc43b7a51d5f4a02edd121
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.capacity-80)>0'
               name: 'ZFS: More than 80% disk space used'
               priority: WARNING
               description: |
-                Some ZFS pools are reporting more than 80% disk space used.
+                Some ZFS pools are reporting more than 80% disk space usage.
                 
                 Pool performance tends to degrade significantly beyond this threshold.
               manual_close: 'YES'
-        -
-          uuid: 86103383d0e349e2bc0672a914f96b0a
+        - uuid: 86103383d0e349e2bc0672a914f96b0a
           name: 'ZFS: Pool capacity - 90'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.capacity-90
           history: 14d
           trends: 30d
+          description: 'An integer indicating the number of pools exceeding 90% usage.'
           triggers:
-            -
-              uuid: 814b73076e3c45b08902c594acb0a8f6
+            - uuid: 814b73076e3c45b08902c594acb0a8f6
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.capacity-90)>0'
               name: 'ZFS: More than 90% disk space used'
               priority: AVERAGE
               description: |
-                Some ZFS pools are reporting more than 90% disk space used.
+                Some ZFS pools are reporting more than 90% disk space usage.
                 
                 Pool performance will degrade significantly beyond this threshold.
               manual_close: 'YES'
-        -
-          uuid: 893e96735f334d6682bd7240488e5c1e
+        - uuid: 893e96735f334d6682bd7240488e5c1e
           name: 'ZFS: Pool health - DEGRADED'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.degraded
           history: 14d
           trends: 30d
+          description: 'An integer indicating the number of degraded pools.'
           triggers:
-            -
-              uuid: 25cecaece6c5456bb73cadd0990a9f5c
+            - uuid: 25cecaece6c5456bb73cadd0990a9f5c
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.degraded)>0'
               name: 'ZFS: Degraded pool'
               priority: HIGH
               description: |
-                The virtual device has encountered a failure but is still operational.
+                The virtual device has encountered a failure but remains operational.
                 
-                This situation is most frequently observed when a mirror or RAID-Z device has lost one or more constituent devices. The fault tolerance of the pool may be compromised, as a subsequent fault in another device could be irreparable.
-        -
-          uuid: d8dbc84fc26642e6a8f686cb99ab36b4
+                This situation most commonly occurs when a mirror or RAID-Z device has lost one or more constituent devices. The fault tolerance of the pool may be compromised, as a subsequent fault in another device could lead to irreparable damage.
+        - uuid: d8dbc84fc26642e6a8f686cb99ab36b4
           name: 'ZFS: Pool health - FAULTED'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.faulted
           history: 14d
           trends: 30d
+          description: 'An integer indicating the number of faulted pools.'
           triggers:
-            -
-              uuid: 56a68481e0ca4118bb6b85d1c0d19b65
+            - uuid: 56a68481e0ca4118bb6b85d1c0d19b65
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.faulted)>0'
               name: 'ZFS: Faulted pool'
               priority: DISASTER
               description: |
                 The device or virtual device is completely inaccessible.
                 
-                This status typically signifies a complete failure of the device, rendering it incapable of sending or receiving data to/from ZFS. If a top-level virtual device is in this state, the entire pool becomes completely inaccessible.
-        -
-          uuid: 7830643e1c3c434b906fe0c5ba70657b
+                This status typically indicates a complete failure of the device, rendering it incapable of sending or receiving data to/from ZFS. If a top-level virtual device is in this state, the entire pool becomes inaccessible.
+        - uuid: 7830643e1c3c434b906fe0c5ba70657b
           name: 'ZFS: Pool fragmentation'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.fragmentation
           history: 14d
           trends: 30d
+          description: 'An integer indicating the number of pools with fragmentation above 70%.'
           triggers:
-            -
-              uuid: af1ec40dd0dc4de2820573e2dfd28242
+            - uuid: af1ec40dd0dc4de2820573e2dfd28242
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.fragmentation)>0'
               name: 'ZFS: More than 70% free disk space fragmentation'
               priority: INFO
               description: 'High fragmentation of free space can lead to significant performance degradation.'
               manual_close: 'YES'
-        -
-          uuid: 5ca64844f5d944cfb9d76a86f58fe749
+        - uuid: 5ca64844f5d944cfb9d76a86f58fe749
           name: 'ZFS: Pools number'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.number
           history: 14d
           trends: 30d
+          description: 'An integer indicating the total number of available pools.'
           triggers:
-            -
-              uuid: c0cd5bf824d8407e826a7a08fed029f9
+            - uuid: c0cd5bf824d8407e826a7a08fed029f9
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.number)=0'
               name: 'ZFS: No data pools available'
               priority: WARNING
               manual_close: 'YES'
-        -
-          uuid: 956de8bff72b4f52a11758f7bfb04323
+        - uuid: 956de8bff72b4f52a11758f7bfb04323
           name: 'ZFS: Pool health - OFFLINE'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.offline
           history: 14d
           trends: 30d
+          description: 'An integer indicating the number of offline pools.'
           triggers:
-            -
-              uuid: f61a6734596146fcb1f12697124ef40e
+            - uuid: f61a6734596146fcb1f12697124ef40e
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.offline)>0'
               name: 'ZFS: Offline pool'
               priority: INFO
               description: 'The device has been explicitly taken offline by the administrator.'
               manual_close: 'YES'
-        -
-          uuid: d8f9f5299d1c4bb7a244c972b86762e5
+        - uuid: d8f9f5299d1c4bb7a244c972b86762e5
           name: 'ZFS: Pool health - REMOVED'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.removed
           history: 14d
           trends: 30d
+          description: 'An integer indicating the number of removed pools.'
           triggers:
-            -
-              uuid: f28db51d033a4ad2962a52ba66b8c5f7
+            - uuid: f28db51d033a4ad2962a52ba66b8c5f7
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.removed)>0'
               name: 'ZFS: Removed pool'
               priority: AVERAGE
               description: |
                 The device was physically removed while the system was running.
                 
-                Device removal detection is dependent on the hardware and may not be supported on all platforms.
-        -
-          uuid: 73874453178c427294097feaebffa8f1
+                Device removal detection depends on the hardware and may not be supported on all platforms.
+        - uuid: 73874453178c427294097feaebffa8f1
           name: 'ZFS: Pool health - UNAVAIL'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.unavail
           history: 14d
           trends: 30d
+          description: 'An integer indicating the number of unavailable pools.'
           triggers:
-            -
-              uuid: 49ad9aa2fbd14a77b5e6cac88abf0638
+            - uuid: 49ad9aa2fbd14a77b5e6cac88abf0638
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.unavail)>0'
               name: 'ZFS: Unavailable pool'
               priority: HIGH
               description: |
                 The device or virtual device cannot be opened.
                 
-                In certain cases, pools with UNAVAIL devices may appear in DEGRADED mode. If a top-level virtual device is UNAVAIL, then all data in the pool becomes inaccessible.
+                In some cases, pools with UNAVAIL devices may appear in DEGRADED mode. If a top-level virtual device is UNAVAIL, all data in the pool becomes inaccessible.
               manual_close: 'YES'
-        -
-          uuid: 1148b70193634c04a4d606fdeb92ca18
+        - uuid: 1148b70193634c04a4d606fdeb92ca18
           name: 'ZFS Template - userparams file version'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.userparams-version
