@@ -97,56 +97,90 @@
 
    Expected return value: an integer indicating the number of pools with fragmentation above 70%.
 
+- `zfs-userparams.pool.scrubbing`
+
+   Check for pools currently undergoing a scrub operation.
+
+   Expected return value: an integer indicating the number of pools with a scrub in progress.
+
+- `zfs-userparams.pool.errors`
+
+   Check for pools reporting read, write, or checksum errors.
+
+   Expected return value: an integer indicating the number of pools with read, write, or checksum errors.
+
 - `zfs-userparams.pool.number`
 
    Check the total number of available ZFS storage pools.
 
    Expected return value: an integer indicating the total number of available pools.
 
+- `zfs-userparams.dataset.nokey`
+
+   Check for encrypted datasets with unavailable encryption keys.
+
+   Expected return value: an integer indicating the number of encrypted datasets with unavailable encryption keys.
+
 ## Template triggers
 
-- **ZFS: No data pools available**
+- **ZFS: Data errors**
+
+   Some pools are reporting errors.
+
+   This indicates potential issues with ZFS pool's data or hardware. These errors may be related to read, write, or checksum mismatches, and it’s essential to address them promptly to ensure data integrity and prevent potential data loss.
 
 - **ZFS: Degraded pool**
 
-  The virtual device has encountered a failure but remains operational.
+   The virtual device has encountered a failure but remains operational.
 
-  This situation most commonly occurs when a mirror or RAID-Z device has lost one or more constituent devices. The fault tolerance of the pool may be compromised, as a subsequent fault in another device could lead to irreparable damage.
+   This situation most commonly occurs when a mirror or RAID-Z device has lost one or more constituent devices. The fault tolerance of the pool may be compromised, as a subsequent fault in another device could lead to irreparable damage.
+
+- **ZFS: Encryption key unavailable**
+
+   The encryption key for some datasets is not available.
+
+   You can still perform selected operations, such as scrubbing, dataset listing, snapshots, and replication.
 
 - **ZFS: Faulted pool**
 
-  The device or virtual device is completely inaccessible.
+   The device or virtual device is completely inaccessible.
 
-  This status typically indicates a complete failure of the device, rendering it incapable of sending or receiving data to/from ZFS. If a top-level virtual device is in this state, the entire pool becomes inaccessible.
+   This status typically indicates a complete failure of the device, rendering it incapable of sending or receiving data to/from ZFS. If a top-level virtual device is in this state, the entire pool becomes inaccessible.
 
 - **ZFS: More than 70% free disk space fragmentation**
 
-  High fragmentation of free space can lead to significant performance degradation.
+   High fragmentation of free space can lead to significant performance degradation.
 
 - **ZFS: More than 80% disk space used**
 
-  Some ZFS pools are reporting more than 80% disk space usage.
+   Some ZFS pools are reporting more than 80% disk space usage.
 
-  Pool performance tends to degrade significantly beyond this threshold.
+   Pool performance tends to degrade significantly beyond this threshold.
 
 - **ZFS: More than 90% disk space used**
 
-  Some ZFS pools are reporting more than 90% disk space usage.
+   Some ZFS pools are reporting more than 90% disk space usage.
 
-  Pool performance will degrade significantly beyond this threshold.
+   Pool performance will degrade significantly beyond this threshold.
+
+- **ZFS: No data pools available**
 
 - **ZFS: Offline pool**
 
-  The device has been explicitly taken offline by the administrator.
+   The device has been explicitly taken offline by the administrator.
+
+- **ZFS: Pool scrubbing**
+
+   Pool is currently undergoing a scrub operation.
 
 - **ZFS: Removed pool**
 
-  The device was physically removed while the system was running.
+   The device was physically removed while the system was running.
 
-  Device removal detection depends on the hardware and may not be supported on all platforms.
+   Device removal detection depends on the hardware and may not be supported on all platforms.
 
 - **ZFS: Unavailable pool**
 
-  The device or virtual device cannot be opened.
+   The device or virtual device cannot be opened.
 
-  In some cases, pools with UNAVAIL devices may appear in DEGRADED mode. If a top-level virtual device is UNAVAIL, all data in the pool becomes inaccessible.
+   In some cases, pools with UNAVAIL devices may appear in DEGRADED mode. If a top-level virtual device is UNAVAIL, all data in the pool becomes inaccessible.

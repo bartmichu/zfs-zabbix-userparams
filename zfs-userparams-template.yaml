@@ -1,6 +1,6 @@
 zabbix_export:
   version: '6.0'
-  date: '2025-01-10T13:57:40Z'
+  date: '2025-01-10T16:40:07Z'
   groups:
     - uuid: 1f248a6e45934744a86f6abf1c8d44d4
       name: Templates/ZFS
@@ -16,6 +16,23 @@ zabbix_export:
       groups:
         - name: Templates/ZFS
       items:
+        - uuid: be8cd265875c451fad0ecab1ee41f80e
+          name: 'ZFS: Dataset key unavailable'
+          type: ZABBIX_ACTIVE
+          key: zfs-userparams.dataset.nokey
+          history: 14d
+          trends: 30d
+          description: 'An integer indicating the number of encrypted datasets with unavailable encryption keys.'
+          triggers:
+            - uuid: 874189414bb44057a77f0a9da5ac3942
+              expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.dataset.nokey)>0'
+              name: 'ZFS: Encryption key unavailable'
+              priority: WARNING
+              description: |
+                The encryption key for some datasets is not available.
+                
+                You can still perform selected operations, such as scrubbing, dataset listing, snapshots, and replication.
+              manual_close: 'YES'
         - uuid: b28d27c1ef464db0b45a20cffa683db8
           name: 'ZFS: Pool capacity - 80'
           type: ZABBIX_ACTIVE
@@ -58,7 +75,7 @@ zabbix_export:
           trends: 30d
           description: 'An integer indicating the number of degraded pools.'
           triggers:
-            - uuid: 25cecaece6c5456bb73cadd0990a9f5c
+            - uuid: 7ef591d20dd546cd969a679b320452b8
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.degraded)>0'
               name: 'ZFS: Degraded pool'
               priority: HIGH
@@ -66,6 +83,22 @@ zabbix_export:
                 The virtual device has encountered a failure but remains operational.
                 
                 This situation most commonly occurs when a mirror or RAID-Z device has lost one or more constituent devices. The fault tolerance of the pool may be compromised, as a subsequent fault in another device could lead to irreparable damage.
+        - uuid: d6d4303e852c49d286971975de6e65df
+          name: 'ZFS: Pool errors'
+          type: ZABBIX_ACTIVE
+          key: zfs-userparams.pool.errors
+          history: 14d
+          trends: 30d
+          description: 'An integer indicating the number of pools with read, write, or checksum errors.'
+          triggers:
+            - uuid: 25cecaece6c5456bb73cadd0990a9f5c
+              expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.errors)>0'
+              name: 'ZFS: Data errors'
+              priority: HIGH
+              description: |
+                Some pools are reporting errors.
+                
+                This indicates potential issues with ZFS pool's data or hardware. These errors may be related to read, write, or checksum mismatches, and it’s essential to address them promptly to ensure data integrity and prevent potential data loss.
         - uuid: d8dbc84fc26642e6a8f686cb99ab36b4
           name: 'ZFS: Pool health - FAULTED'
           type: ZABBIX_ACTIVE
@@ -139,6 +172,20 @@ zabbix_export:
                 The device was physically removed while the system was running.
                 
                 Device removal detection depends on the hardware and may not be supported on all platforms.
+        - uuid: 293688f25cbb4bb3a6a4040760feb3b8
+          name: 'ZFS: Pool scrubbing'
+          type: ZABBIX_ACTIVE
+          key: zfs-userparams.pool.scrubbing
+          history: 14d
+          trends: 30d
+          description: 'An integer indicating the number of pools with a scrub in progress.'
+          triggers:
+            - uuid: 560f0d15bc9e4fd19915c3aa042ab827
+              expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.scrubbing)>0'
+              name: 'ZFS: Pool scrubbing'
+              priority: INFO
+              description: 'Pool is currently undergoing a scrub operation.'
+              manual_close: 'YES'
         - uuid: 73874453178c427294097feaebffa8f1
           name: 'ZFS: Pool health - UNAVAIL'
           type: ZABBIX_ACTIVE
