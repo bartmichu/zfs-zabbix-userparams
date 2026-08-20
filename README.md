@@ -37,7 +37,41 @@
 - Active Zabbix Agent 2 on Ubuntu LTS
 - Zabbix Server 7.0 LTS
 
+## ARC-aware memory monitoring
+
+The ZFS ARC is allocated outside the Linux page cache, so the kernel reports it as `used` memory rather than `buff/cache`. As a result, `MemAvailable` — and therefore the stock `vm.memory.size[available]` / `vm.memory.size[pused]` items — under-report reclaimable memory on ZFS hosts, producing false "high memory" alerts.
+
+The `zfs-userparams.arc.*` items expose the ARC size and an ARC-aware memory calculation that credits the reclaimable portion of the ARC (`size - c_min`) back as available. On ZFS hosts, alert on `zfs-userparams.arc.mem-pused` instead of `vm.memory.size[pused]`, and consider disabling or overriding the OS-template memory triggers to avoid duplicate alerting.
+
 ## Template items
+
+- `zfs-userparams.arc.size`
+
+   Current size of the ZFS ARC in bytes. The ARC is allocated outside the Linux page cache, so the kernel reports it as used memory rather than buff/cache.
+
+- `zfs-userparams.arc.cmin`
+
+   Minimum size the ARC can be reclaimed down to under memory pressure (c_min), in bytes.
+
+- `zfs-userparams.arc.cmax`
+
+   Maximum size the ARC is allowed to grow to (c_max), in bytes.
+
+- `zfs-userparams.arc.reclaimable`
+
+   Reclaimable portion of the ARC (`size - c_min`, floored at 0), in bytes. This is the memory the kernel can hand back to applications on demand.
+
+- `zfs-userparams.arc.hit-ratio`
+
+   ARC hit ratio as a percentage since boot. A low hit ratio may indicate the ARC is too small for the working set.
+
+- `zfs-userparams.arc.mem-available`
+
+   Available memory in bytes accounting for reclaimable ARC: `MemAvailable + (ARC size - c_min)`. Use this instead of `vm.memory.size[available]` on ZFS hosts.
+
+- `zfs-userparams.arc.mem-pused`
+
+   Used memory as a percentage, crediting reclaimable ARC as available: `100 * (1 - (MemAvailable + ARC size - c_min) / MemTotal)`. Use this instead of `vm.memory.size[pused]` for memory alerting on ZFS hosts.
 
 - `zfs-userparams.dataset.nokey`
 
@@ -92,6 +126,24 @@
    Version number of this template file.
 
 ## Template triggers
+
+- **ZFS: High memory utilization (ARC-aware) - 90%**
+
+   ARC-aware memory utilization has exceeded 90% for the last 5 minutes.
+
+   Unlike the stock memory items, this metric already discounts reclaimable ARC, so a sustained high value reflects genuine memory pressure rather than ZFS caching. Investigate application memory usage and consider capping `zfs_arc_max` or adding memory.
+
+- **ZFS: High memory utilization (ARC-aware) - 80%**
+
+   ARC-aware memory utilization has exceeded 80% for the last 5 minutes. Depends on the 90% trigger. This metric already discounts reclaimable ARC, so it reflects real memory pressure.
+
+- **ZFS: Low ARC hit ratio**
+
+   The ARC hit ratio has stayed below 50% for the last 30 minutes. Suggests the ARC is undersized for the current working set, increasing read latency and back-end disk I/O.
+
+- **ZFS: User Parameters version mismatch**
+
+   The deployed `zfs-userparams.conf` file is not at the expected version (4). Update the User Parameters file on the host and/or re-import the template so both are in sync.
 
 - **ZFS: Data errors**
 

@@ -18,12 +18,18 @@ zabbix_export:
           name: 'ZFS: Dataset key unavailable'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.dataset.nokey
+          tags:
+            - tag: component
+              value: zfs
           history: 14d
           trends: 30d
           description: 'Count of encrypted datasets with unavailable encryption keys. Datasets remain accessible for most operations but require key availability for full functionality.'
           triggers:
             - uuid: 874189414bb44057a77f0a9da5ac3942
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.dataset.nokey)>0'
+              tags:
+                - tag: component
+                  value: zfs
               name: 'ZFS: Encryption key unavailable'
               priority: WARNING
               description: |
@@ -31,16 +37,141 @@ zabbix_export:
                 
                 Affected datasets can still perform scrubbing, listing, snapshots, and replication, but require the key for read/write operations.
               manual_close: 'YES'
+        - uuid: 766bf9d17ed240efbe64fcbff11d5a7c
+          name: 'ZFS: ARC size'
+          type: ZABBIX_ACTIVE
+          key: zfs-userparams.arc.size
+          tags:
+            - tag: component
+              value: zfs
+          history: 14d
+          trends: 90d
+          units: B
+          description: 'Current size of the ZFS ARC in bytes. The ARC is allocated outside the Linux page cache, so the kernel reports it as used memory rather than buff/cache.'
+        - uuid: 6d440d86d53840a6b79d09cd9ae4d34a
+          name: 'ZFS: ARC minimum size'
+          type: ZABBIX_ACTIVE
+          key: zfs-userparams.arc.cmin
+          tags:
+            - tag: component
+              value: zfs
+          history: 14d
+          trends: 90d
+          units: B
+          description: 'Minimum size the ARC can be reclaimed down to under memory pressure (c_min), in bytes.'
+        - uuid: dcec1f6fc86046509d44bb397245d26d
+          name: 'ZFS: ARC maximum size'
+          type: ZABBIX_ACTIVE
+          key: zfs-userparams.arc.cmax
+          tags:
+            - tag: component
+              value: zfs
+          history: 14d
+          trends: 90d
+          units: B
+          description: 'Maximum size the ARC is allowed to grow to (c_max), in bytes.'
+        - uuid: 01b4a3f0831b43fe94fdcc21ac1ba091
+          name: 'ZFS: ARC reclaimable memory'
+          type: ZABBIX_ACTIVE
+          key: zfs-userparams.arc.reclaimable
+          tags:
+            - tag: component
+              value: zfs
+          history: 14d
+          trends: 90d
+          units: B
+          description: 'Reclaimable portion of the ARC (size - c_min, floored at 0), in bytes. This is the memory the kernel can hand back to applications on demand.'
+        - uuid: 18ce0b6b4f634cc0aa4c1f8802fc25d8
+          name: 'ZFS: ARC hit ratio'
+          type: ZABBIX_ACTIVE
+          key: zfs-userparams.arc.hit-ratio
+          tags:
+            - tag: component
+              value: zfs
+          value_type: FLOAT
+          history: 14d
+          trends: 90d
+          units: '%'
+          description: 'ARC hit ratio as a percentage since boot. A low hit ratio may indicate the ARC is too small for the working set.'
+          triggers:
+            - uuid: 770fd948aaeb4a0780e975a3884bb9ba
+              expression: 'max(/Basic ZFS by Zabbix agent active/zfs-userparams.arc.hit-ratio,30m)<50'
+              tags:
+                - tag: component
+                  value: zfs
+              name: 'ZFS: Low ARC hit ratio'
+              priority: INFO
+              description: |
+                The ARC hit ratio has stayed below 50% for the last 30 minutes.
+
+                A persistently low hit ratio suggests the ARC is undersized for the current working set, which increases read latency and back-end disk I/O. Consider increasing zfs_arc_max if free memory allows.
+              manual_close: 'YES'
+        - uuid: c85f23da60cc484f93c1589df9a0e90e
+          name: 'ZFS: Memory available (ARC-aware)'
+          type: ZABBIX_ACTIVE
+          key: zfs-userparams.arc.mem-available
+          tags:
+            - tag: component
+              value: zfs
+          history: 14d
+          trends: 90d
+          units: B
+          description: 'Available memory in bytes accounting for reclaimable ARC: MemAvailable + (ARC size - c_min). Use this instead of vm.memory.size[available] on ZFS hosts.'
+        - uuid: b2dc1f23bced470ca58cc38ef97eca19
+          name: 'ZFS: Memory used (ARC-aware)'
+          type: ZABBIX_ACTIVE
+          key: zfs-userparams.arc.mem-pused
+          tags:
+            - tag: component
+              value: zfs
+          value_type: FLOAT
+          history: 14d
+          trends: 90d
+          units: '%'
+          description: 'Used memory as a percentage, crediting reclaimable ARC as available: 100 * (1 - (MemAvailable + ARC size - c_min) / MemTotal). Use this instead of vm.memory.size[pused] for memory alerting on ZFS hosts.'
+          triggers:
+            - uuid: 12ba78ad576947bcb14995fba30cece3
+              expression: 'min(/Basic ZFS by Zabbix agent active/zfs-userparams.arc.mem-pused,5m)>90'
+              tags:
+                - tag: component
+                  value: zfs
+              name: 'ZFS: High memory utilization (ARC-aware) - 90%'
+              priority: HIGH
+              description: |
+                ARC-aware memory utilization has exceeded 90% for the last 5 minutes.
+
+                Unlike the stock memory items, this metric already discounts reclaimable ARC, so a sustained high value reflects genuine memory pressure rather than ZFS caching. Investigate application memory usage and consider capping zfs_arc_max or adding memory.
+            - uuid: dfb2faa38fd8472598b7419ed245fb5e
+              expression: 'min(/Basic ZFS by Zabbix agent active/zfs-userparams.arc.mem-pused,5m)>80'
+              tags:
+                - tag: component
+                  value: zfs
+              name: 'ZFS: High memory utilization (ARC-aware) - 80%'
+              priority: WARNING
+              description: |
+                ARC-aware memory utilization has exceeded 80% for the last 5 minutes.
+
+                This metric already discounts reclaimable ARC, so it reflects real memory pressure. Monitor the trend and review application memory usage.
+              dependencies:
+                - name: 'ZFS: High memory utilization (ARC-aware) - 90%'
+                  expression: 'min(/Basic ZFS by Zabbix agent active/zfs-userparams.arc.mem-pused,5m)>90'
+              manual_close: 'YES'
         - uuid: b28d27c1ef464db0b45a20cffa683db8
           name: 'ZFS: Pool capacity - 80'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.capacity-80
+          tags:
+            - tag: component
+              value: zfs
           history: 14d
           trends: 30d
           description: 'Count of storage pools exceeding 80% capacity utilization. Pools approaching this threshold should be monitored for capacity planning.'
           triggers:
             - uuid: 34fdbbf03edc43b7a51d5f4a02edd121
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.capacity-80)>0'
+              tags:
+                - tag: component
+                  value: zfs
               name: 'ZFS: More than 80% disk space used'
               priority: WARNING
               description: |
@@ -52,12 +183,18 @@ zabbix_export:
           name: 'ZFS: Pool capacity - 90'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.capacity-90
+          tags:
+            - tag: component
+              value: zfs
           history: 14d
           trends: 30d
           description: 'Count of storage pools exceeding 90% capacity utilization. Immediate capacity action may be required.'
           triggers:
             - uuid: 814b73076e3c45b08902c594acb0a8f6
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.capacity-90)>0'
+              tags:
+                - tag: component
+                  value: zfs
               name: 'ZFS: More than 90% disk space used'
               priority: AVERAGE
               description: |
@@ -69,12 +206,18 @@ zabbix_export:
           name: 'ZFS: Pool health - DEGRADED'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.degraded
+          tags:
+            - tag: component
+              value: zfs
           history: 14d
           trends: 30d
           description: 'Count of storage pools in DEGRADED state. Indicates loss of redundancy that requires attention.'
           triggers:
             - uuid: 7ef591d20dd546cd969a679b320452b8
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.degraded)>0'
+              tags:
+                - tag: component
+                  value: zfs
               name: 'ZFS: Degraded pool'
               priority: HIGH
               description: |
@@ -85,12 +228,18 @@ zabbix_export:
           name: 'ZFS: Pool errors'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.errors
+          tags:
+            - tag: component
+              value: zfs
           history: 14d
           trends: 30d
           description: 'Count of storage pools reporting read, write, or checksum errors. Indicates potential hardware or data integrity issues.'
           triggers:
             - uuid: 25cecaece6c5456bb73cadd0990a9f5c
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.errors)>0'
+              tags:
+                - tag: component
+                  value: zfs
               name: 'ZFS: Data errors'
               priority: HIGH
               description: |
@@ -101,12 +250,18 @@ zabbix_export:
           name: 'ZFS: Pool health - FAULTED'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.faulted
+          tags:
+            - tag: component
+              value: zfs
           history: 14d
           trends: 30d
           description: 'Count of storage pools in FAULTED state. Indicates pool is inaccessible and requires immediate intervention.'
           triggers:
             - uuid: 56a68481e0ca4118bb6b85d1c0d19b65
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.faulted)>0'
+              tags:
+                - tag: component
+                  value: zfs
               name: 'ZFS: Faulted pool'
               priority: DISASTER
               description: |
@@ -117,12 +272,18 @@ zabbix_export:
           name: 'ZFS: Pool fragmentation'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.fragmentation
+          tags:
+            - tag: component
+              value: zfs
           history: 14d
           trends: 30d
           description: 'Count of storage pools with free space fragmentation exceeding 70%. High fragmentation reduces performance.'
           triggers:
             - uuid: af1ec40dd0dc4de2820573e2dfd28242
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.fragmentation)>0'
+              tags:
+                - tag: component
+                  value: zfs
               name: 'ZFS: More than 70% free disk space fragmentation'
               priority: INFO
               description: |
@@ -134,12 +295,18 @@ zabbix_export:
           name: 'ZFS: Pools number'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.number
+          tags:
+            - tag: component
+              value: zfs
           history: 14d
           trends: 30d
           description: 'Total count of available ZFS storage pools.'
           triggers:
             - uuid: c0cd5bf824d8407e826a7a08fed029f9
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.number)=0'
+              tags:
+                - tag: component
+                  value: zfs
               name: 'ZFS: No data pools available'
               priority: WARNING
               manual_close: 'YES'
@@ -147,12 +314,18 @@ zabbix_export:
           name: 'ZFS: Pool health - OFFLINE'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.offline
+          tags:
+            - tag: component
+              value: zfs
           history: 14d
           trends: 30d
           description: 'Count of storage pools in OFFLINE state. Indicates administrator-initiated pool suspension.'
           triggers:
             - uuid: f61a6734596146fcb1f12697124ef40e
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.offline)>0'
+              tags:
+                - tag: component
+                  value: zfs
               name: 'ZFS: Offline pool'
               priority: INFO
               description: |
@@ -164,12 +337,18 @@ zabbix_export:
           name: 'ZFS: Pool health - REMOVED'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.removed
+          tags:
+            - tag: component
+              value: zfs
           history: 14d
           trends: 30d
           description: 'Count of storage pools in REMOVED state. Indicates physical device removal while system was running.'
           triggers:
             - uuid: f28db51d033a4ad2962a52ba66b8c5f7
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.removed)>0'
+              tags:
+                - tag: component
+                  value: zfs
               name: 'ZFS: Removed pool'
               priority: AVERAGE
               description: |
@@ -180,12 +359,18 @@ zabbix_export:
           name: 'ZFS: Pool scrubbing'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.scrubbing
+          tags:
+            - tag: component
+              value: zfs
           history: 14d
           trends: 30d
           description: 'Count of storage pools actively undergoing scrub operations. Normal maintenance activity.'
           triggers:
             - uuid: 560f0d15bc9e4fd19915c3aa042ab827
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.scrubbing)>0'
+              tags:
+                - tag: component
+                  value: zfs
               name: 'ZFS: Pool scrubbing'
               priority: INFO
               description: |
@@ -197,12 +382,18 @@ zabbix_export:
           name: 'ZFS: Pool health - UNAVAIL'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.pool.unavail
+          tags:
+            - tag: component
+              value: zfs
           history: 14d
           trends: 30d
           description: 'Count of storage pools in UNAVAIL state. Indicates pool devices cannot be accessed.'
           triggers:
             - uuid: 49ad9aa2fbd14a77b5e6cac88abf0638
               expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.pool.unavail)>0'
+              tags:
+                - tag: component
+                  value: zfs
               name: 'ZFS: Unavailable pool'
               priority: HIGH
               description: |
@@ -214,7 +405,23 @@ zabbix_export:
           name: 'ZFS Template - userparams file version'
           type: ZABBIX_ACTIVE
           key: zfs-userparams.userparams-version
+          tags:
+            - tag: component
+              value: zfs
           delay: 30m
           history: 14d
           trends: 30d
           description: 'Version number of this template file.'
+          triggers:
+            - uuid: 990b4bcd098042c1a65b811456073bcf
+              expression: 'last(/Basic ZFS by Zabbix agent active/zfs-userparams.userparams-version)<>4'
+              tags:
+                - tag: component
+                  value: zfs
+              name: 'ZFS: User Parameters version mismatch'
+              priority: INFO
+              description: |
+                The deployed zfs-userparams.conf file is not at the expected version (4).
+
+                The template and the agent User Parameters file are out of sync. Update zfs-userparams.conf on the host (and/or re-import the template) so both are at the same version.
+              manual_close: 'YES'
